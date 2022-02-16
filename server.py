@@ -9,99 +9,108 @@ app = Flask(__name__)
 users = {}
 lists = []
 
-@app.route('/list/<list_id>',methods = ['GET'])
+@app.route('/list-add/<user_id>',methods = ['POST'])
+def list_add(user_id):
+    #list-add
+    for i, v in users.items():
+        if v == user_id:
+            d = {}
+            d['user_id'] = user_id
+            d['list_id'] = str(uuid.uuid4())
+            l = []
+            l.append(d)
+            lists.append(l)
+
+            return str(d) + ' Statuscode: 200'
+    return 'Statuscode: 404'
+    
+
+@app.route('/list/<list_id>',methods = ['GET', 'POST', 'DELETE'])
 def list(list_id):
-    for v in lists:
-        if v[0]['list_id'] == list_id:
-            j = json.dumps(v)
-            return j
+    #list
+    if request.method == 'GET':
+        for v in lists:
+            if v[0]['list_id'] == list_id:
+                j = json.dumps(v)
+                return j
+    #list-delete
+    if request.method == 'DELETE':
+        f = 404
+        for v in lists:
+            if v[0]['list_id'] == list_id:
+                f = 200
+                lists.remove(v)
+    
+        return str(f)
+    #list-add-entry
+    if request.method == 'POST':
+        data = json.loads( request.data )
+        for v in lists:
+            if v[0]['list_id'] == list_id:
+                d = {}
+                d['id'] = str(uuid.uuid4())
+                d['name'] = data['name']
+                d['description'] = data['description']
+                d['user_id'] = v[0]['user_id']
+                d['list_id'] = list_id
+                if "id" not in v[0]:
+                    v.remove(v[0])
+                v.append(d)
+                return str(d) + ' Statuscode: 200' 
 
     return 'Statuscode: 404'
 
-@app.route('/list-add/<user>',methods = ['GET'])
-def list_add(user):
-    d = {}
-    d['user_id'] = users[user]
-    d['list_id'] = str(uuid.uuid4())
-    l = []
-    l.append(d)
-    lists.append(l)
-    d2 = d
-    d2['Statuscode'] = 200
-
-    return str(d2)
-
-@app.route('/list-delete/<list_id>',methods = ['GET'])
-def list_delete(list_id):
-    f = 404
-    for v in lists:
-        if v[0]['list_id'] == list_id:
-            f = 200
-            lists.remove(v)
-    
-    return str(f)
-
-@app.route('/list-add-entry/<list_id>',methods = ['GET'])
-def list_add_entry(list_id):
-    for v in lists:
-        if v[0]['list_id'] == list_id:
-            d = {}
-            d['id'] = str(uuid.uuid4())
-            d['name'] = request.args.get('name')
-            d['description'] = request.args.get('description')
-            d['user_id'] = v[0]['user_id']
-            d['list_id'] = list_id
-            if "id" not in v[0]:
-                v.remove(v[0])
-            v.append(d)
-            d2 = d
-            d2['Statuscode'] = 200
-            return str(d2)
-    return 'Statuscode: 404' 
-
-@app.route('/list-delete-entry/<id>',methods = ['GET'])
-def list_delete_entry(id):
-    f = 404
-    for v in lists:
-        for v2 in v:
-            if v2['id'] == id:
-                f = 200
-                lists.remove(v2)
-    
-    return str(f)
-
-@app.route('/list-change-entry/<list_id>/entry/<id>',methods = ['GET'])
-def list_change_entry(list_id, id):
-    for v in lists:
-        if v[0]['list_id'] == list_id:
-            for v2 in v:
-                if v2['id'] == id:
-                    v2['name'] = request.args.get('name')
-                    v2['description'] = request.args.get('description')
-                    d = v2
-                    d['Statuscode'] = 200
-                    return str(d)
-                    
+@app.route('/list/<list_id>/entry/<id>',methods = ['PUT', 'DELETE'])
+def list_entry(list_id, id):
+    #entry-delete
+    if request.method == 'DELETE':
+        f = 404
+        for v in lists:
+            if v[0]['list_id'] == list_id:
+                for v2 in v:
+                    if v2['id'] == id:
+                        f = 200
+                        v.remove(v2)
+        
+        return str(f)
+    #entry-change
+    if request.method == 'PUT':
+        data = json.loads( request.data )
+        for v in lists:
+            if v[0]['list_id'] == list_id:
+                for v2 in v:
+                    if v2['id'] == id:
+                        v2['name'] = data['name']
+                        v2['description'] = data['description']
+                        return str(v2) + ' Statuscode: 200' 
+                        
     return 'Statuscode: 404'    
 
-@app.route('/user-add/<user>',methods = ['GET'])
-def user_add(user):
-    users[user] = str(uuid.uuid4())
-    
-    return str(users[user]) + ' Statuscode: 200'
+@app.route('/user',methods = ['GET', 'POST'])
+def user():
+    #user-add
+    if request.method == 'POST':
+        user = json.loads( request.data )['user']
+        if user not in users:
+            users[user] = str(uuid.uuid4())
+            return str(users[user]) 
+    #user-list
+    if request.method == 'GET':
+        return users
+            
+    return 'Statuscode: 409'
 
-@app.route('/user-delete/<user>',methods = ['GET'])
-def user_delete(user):
-    f = 0
-    f = users.pop(user, f)
-    if f == 0: f = 404
-    elif f != 0: f = 200
+@app.route('/user/<user_id>',methods = ['DELETE'])
+def user_delete(user_id):
+    #user-delete
+    f = 404
+    for key, value in users.items():
+        if value == user_id:
+            del users[key]
+            f = 200
+            break
     
     return str(f)
-
-@app.route('/user-list',methods = ['GET'])
-def user_list():
-    return users
 
 @app.errorhandler(HTTPException)
 def handle_exception(e):
