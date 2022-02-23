@@ -2,6 +2,7 @@ import json
 from urllib import response
 import uuid
 import pprint
+import copy
 from flask import Flask, request, Response
 from werkzeug.exceptions import HTTPException
 
@@ -20,9 +21,11 @@ def list_add(user_id):
             l = []
             l.append(d)
             lists.append(l)
+            d2 = copy.deepcopy(d)
+            d2['statuscode'] = '200'
 
-            return str(d) + ' Statuscode: 200'
-    return 'Statuscode: 404'
+            return str(d2)
+    return '{"statuscode": "404"}'
     
 
 @app.route('/list/<list_id>',methods = ['GET', 'POST', 'DELETE'])
@@ -41,7 +44,7 @@ def list(list_id):
                 f = 200
                 lists.remove(v)
     
-        return str(f)
+        return '{"statuscode": "' + str(f) + '"}'
     #list-add-entry
     if request.method == 'POST':
         data = json.loads( request.data )
@@ -56,9 +59,11 @@ def list(list_id):
                 if "id" not in v[0]:
                     v.remove(v[0])
                 v.append(d)
-                return str(d) + ' Statuscode: 200' 
+                d2 = copy.deepcopy(d)
+                d2['statuscode'] = '200'
+                return str(d2)
 
-    return 'Statuscode: 404'
+    return '{"statuscode": "404"}'
 
 @app.route('/list/<list_id>/entry/<id>',methods = ['PUT', 'DELETE'])
 def list_entry(list_id, id):
@@ -72,7 +77,7 @@ def list_entry(list_id, id):
                         f = 200
                         v.remove(v2)
         
-        return str(f)
+        return '{"statuscode": "' + str(f) + '"}'
     #entry-change
     if request.method == 'PUT':
         data = json.loads( request.data )
@@ -82,9 +87,11 @@ def list_entry(list_id, id):
                     if v2['id'] == id:
                         v2['name'] = data['name']
                         v2['description'] = data['description']
-                        return str(v2) + ' Statuscode: 200' 
+                        v3 = copy.deepcopy(v2)
+                        v3['statuscode'] = '200'
+                        return str(v3) 
                         
-    return 'Statuscode: 404'    
+    return '{"statuscode": "404"}' 
 
 @app.route('/user',methods = ['GET', 'POST'])
 def user():
@@ -93,12 +100,13 @@ def user():
         user = json.loads( request.data )['user']
         if user not in users:
             users[user] = str(uuid.uuid4())
-            return str(users[user]) 
+            return '{"' + str(user) + '": "' + str(users[user]) + '", "statuscode": "200"}' 
+        return '{"statuscode": "409"}'
     #user-list
     if request.method == 'GET':
         return users
             
-    return 'Statuscode: 409'
+    return '{"statuscode": "404"}'
 
 @app.route('/user/<user_id>',methods = ['DELETE'])
 def user_delete(user_id):
@@ -110,7 +118,7 @@ def user_delete(user_id):
             f = 200
             break
     
-    return str(f)
+    return '{"statuscode": "' + str(f) + '"}'
 
 @app.errorhandler(HTTPException)
 def handle_exception(e):
