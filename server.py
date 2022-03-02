@@ -4,9 +4,11 @@ import uuid
 import pprint
 import copy
 from flask import Flask, request, Response
+from flask_cors import CORS
 from werkzeug.exceptions import HTTPException
 
 app = Flask(__name__)
+CORS(app)
 users = {}
 lists = []
 
@@ -52,10 +54,10 @@ def list(list_id):
             if v[0]['list_id'] == list_id:
                 d = {}
                 d['id'] = str(uuid.uuid4())
+                d['list_id'] = list_id
+                d['user_id'] = v[0]['user_id']
                 d['name'] = data['name']
                 d['description'] = data['description']
-                d['user_id'] = v[0]['user_id']
-                d['list_id'] = list_id
                 if "id" not in v[0]:
                     v.remove(v[0])
                 v.append(d)
@@ -132,4 +134,4 @@ def handle_exception(e):
     return response
 
 if __name__ == '__main__':
-   app.run(host='127.0.0.1', port=5000)
+    app.run(host='127.0.0.1', port=5000)

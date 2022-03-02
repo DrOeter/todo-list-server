@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>replit</title>
+    <script src="index.ts" ></script>
+  </head>
+  <body>
+    
+    <label for="user">User :</label>
+    <input type="text" id="user" name="user"><br><br>
+    <label for="name">Name :</label>
+    <input type="text" id="name" name="name"><br><br>
+    <label for="desc">Description :</label>
+    <input type="text" id="desc" name="desc"><br><br>
+    <br>
+    <button type="button" onclick="addUser()">Add User</button>
+    <button type="button" onclick="addList()">Add List</button>
+    <button type="button" onclick="addEntry()">Add Entry</button>
+    <button type="button" onclick="getList()">Get List</button>
+    <button type="button" onclick="changeEntry()">Change Entry</button>
+    <button type="button" onclick="deleteUser()">Delete User</button>
+    <button type="button" onclick="deleteEntry()">Delete Entry</button>
+    <button type="button" onclick="deleteList()">Delete List</button>
+    <br>
+    <br>
+    <select onchange="userSelected(this.value)" id="userListBox" type="text" size="5">  
+    </select>
+    <select onchange="listSelected(this.value)" id="listListBox" type="text" size="5">  
+    </select>  
+    
+    <br>
+    <div id="box"></div>
+    <br>
+    <br>
+    
+    <table>
+        <tr>
+            <th>ID</th>
+            <th>List ID</th>
+            <th>User ID</th>
+            <th>Name</th>
+            <th>Description</th>
+        <tr>
+    </table>
+    <select onchange="entrySelected(this.value)" id="entryListBox" type="text" size="1" style="float: left; font-size: 16px;">  
+    </select>
+    <table id="listTable">
+    </table>
+
+  </body>
+</html>
